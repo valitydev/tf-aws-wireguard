@@ -1,0 +1,29 @@
+#!/bin/bash -v
+apt update
+DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -o Dpkg::Options::="--force-confnew"
+apt install -y \
+  apt-transport-https \
+  ca-certificates \
+  curl \
+  net-tools \
+  wireguard-dkms \
+  wireguard-tools
+
+cat > /etc/wireguard/wg0.conf <<- EOF
+${wg_conf}
+EOF
+
+chown -R root:root /etc/wireguard/
+chmod -R og-rwx /etc/wireguard/*
+sysctl -p
+systemctl enable wg-quick@wg0.service
+systemctl start wg-quick@wg0.service
+
+until systemctl is-active --quiet wg-quick@wg0.service
+do
+  sleep 1
+done
+
+ufw allow ssh
+ufw allow ${wg_server_port}/udp
+ufw --force enable
