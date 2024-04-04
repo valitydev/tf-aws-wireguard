@@ -18,7 +18,7 @@ resource "aws_instance" "wireguard" {
 }
 
 resource "aws_eip" "wireguard" {
-  vpc      = true
+  domain = "vpc"
   instance = aws_instance.wireguard.id
   tags     = var.aws_tags
 }
